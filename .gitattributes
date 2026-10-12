@@ -1,0 +1,2 @@
+# Windows runners check out with CRLF, which bash rejects.
+*.sh text eol=lf

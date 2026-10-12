@@ -1,0 +1,82 @@
+name: Setup Itqan CLI
+description: Install the itqan CLI, which installs and pins Itqan Quranic assets, and optionally run `itqan install`.
+author: Itqan Community
+branding:
+  icon: book-open
+  color: green
+
+inputs:
+  version:
+    description: The itqan version to install, such as `0.1.3`, or `latest` for the latest release.
+    default: latest
+  registry-url:
+    description: The Itqan registry to use. Sets `ITQAN_REGISTRY_URL` for the rest of the job. Defaults to the public registry.
+    default: ""
+  install:
+    description: Also run `itqan install` in `working-directory`.
+    default: "false"
+  working-directory:
+    description: Where to run `itqan install`, the folder with `itqan-assets.yaml`.
+    default: .
+  api-key:
+    description: An Itqan API key for `itqan install`, from a secret. Needed only for assets that require access approval. You can set `ITQAN_API_KEY` instead.
+    default: ""
+  cache:
+    description: Cache the downloaded binary with actions/cache.
+    default: "true"
+
+outputs:
+  version:
+    description: The installed itqan version, such as `0.1.3`.
+    value: ${{ steps.resolve.outputs.version }}
+  path:
+    description: The path to the itqan executable.
+    value: ${{ steps.resolve.outputs.binary }}
+  cache-hit:
+    description: Whether the binary came from the cache.
+    value: ${{ steps.cache.outputs.cache-hit == 'true' }}
+
+runs:
+  using: composite
+  steps:
+    - id: resolve
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: '"$GITHUB_ACTION_PATH/setup.sh" resolve'
+
+    - id: cache
+      if: inputs.cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.resolve.outputs.dir }}
+        key: setup-itqan-${{ steps.resolve.outputs.version }}-${{ steps.resolve.outputs.os }}-${{ steps.resolve.outputs.arch }}
+
+    - shell: bash
+      env:
+        VERSION: ${{ steps.resolve.outputs.version }}
+        OS: ${{ steps.resolve.outputs.os }}
+        ARCH: ${{ steps.resolve.outputs.arch }}
+        DIR: ${{ steps.resolve.outputs.dir }}
+      run: |
+        "$GITHUB_ACTION_PATH/setup.sh" download
+        echo "$DIR" >> "$GITHUB_PATH"
+
+    - if: inputs.registry-url != ''
+      shell: bash
+      env:
+        REGISTRY_URL: ${{ inputs.registry-url }}
+      run: echo "ITQAN_REGISTRY_URL=$REGISTRY_URL" >> "$GITHUB_ENV"
+
+    - shell: bash
+      env:
+        BINARY: ${{ steps.resolve.outputs.binary }}
+      run: '"$BINARY" --version'
+
+    - if: inputs.install == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        ITQAN_API_KEY: ${{ inputs.api-key || env.ITQAN_API_KEY }}
+        BINARY: ${{ steps.resolve.outputs.binary }}
+      run: '"$BINARY" install'
