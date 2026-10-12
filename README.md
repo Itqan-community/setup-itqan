@@ -1,5 +1,10 @@
 # setup-itqan
 
+[![Test](https://github.com/Itqan-community/setup-itqan/actions/workflows/test.yml/badge.svg)](https://github.com/Itqan-community/setup-itqan/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/Itqan-community/setup-itqan)](https://github.com/Itqan-community/setup-itqan/releases/latest)
+[![itqan-cli](https://img.shields.io/github/v/release/Itqan-community/itqan-cli?label=itqan-cli)](https://github.com/Itqan-community/itqan-cli)
+[![License: MIT](https://img.shields.io/github/license/Itqan-community/setup-itqan)](LICENSE)
+
 Install the [itqan CLI](https://github.com/Itqan-community/itqan-cli) in a GitHub Actions
 workflow, then install your project's [Itqan](https://cms.itqan.dev) Quranic assets from its
 `itqan-assets.yaml` and `itqan-assets.lock`.
