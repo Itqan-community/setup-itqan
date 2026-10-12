@@ -19,9 +19,10 @@ resolve() {
   local version="${VERSION#v}"
   if [ -z "$version" ] || [ "$version" = latest ]; then
     # The /releases/latest page redirects to the latest final release's tag. Unlike the REST
-    # API, it has no rate limit and needs no token.
+    # API, it has no rate limit and needs no token. Only the redirect is read: the release
+    # page it points to is slow to render and sometimes times out.
     local url
-    url="$(curl -fsSL --retry 3 -o /dev/null -w '%{url_effective}' "https://github.com/$REPO/releases/latest")" \
+    url="$(curl -fsS --retry 5 -o /dev/null -w '%{redirect_url}' "https://github.com/$REPO/releases/latest")" \
       || fail "Could not look up the latest itqan release"
     version="${url##*/tag/v}"
     [ "$version" != "$url" ] || fail "Could not read the latest itqan version from $url"
@@ -73,14 +74,14 @@ download() {
   local base="https://github.com/$REPO/releases/download/v$VERSION"
   local tmp
   tmp="$(mktemp -d)"
-  curl -fsSL --retry 3 -o "$tmp/SHA256SUMS" "$base/SHA256SUMS" \
+  curl -fsSL --retry 5 -o "$tmp/SHA256SUMS" "$base/SHA256SUMS" \
     || fail "Could not download SHA256SUMS for itqan $VERSION. Is $VERSION a released version? See https://github.com/$REPO/releases"
   local expected
   expected="$(awk -v n="$name" '$2 == n || $2 == "*" n { print $1 }' "$tmp/SHA256SUMS")"
   [ -n "$expected" ] || fail "itqan $VERSION has no $name binary"
 
   echo "Downloading $base/$name"
-  curl -fsSL --retry 3 -o "$tmp/$name" "$base/$name" || fail "Could not download $name"
+  curl -fsSL --retry 5 -o "$tmp/$name" "$base/$name" || fail "Could not download $name"
   local actual
   actual="$(sha256 "$tmp/$name")"
   [ "$actual" = "$expected" ] || fail "Checksum mismatch for $name: expected $expected, got $actual"
