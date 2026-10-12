@@ -6,7 +6,7 @@ workflow, then install your project's [Itqan](https://cms.itqan.dev) Quranic ass
 
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v7
   - uses: itqan-community/setup-itqan@v1
   - run: itqan install
 ```
@@ -80,7 +80,7 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: itqan-community/setup-itqan@v1
         with:
           install: true
